@@ -130,9 +130,10 @@ app.get("/", async (req, res) => {
         });
     });
   //   console.log(result);
-  const filteredResult = result.filter((item) =>
-    ["Đồng Nai", "Cần Thơ", "Sóc Trăng"].includes(item.name),
-  );
+  // const filteredResult = result.filter((item) =>
+  //   ["Đồng Nai", "Cần Thơ", "Sóc Trăng"].includes(item.name),
+  // );
+  const filteredResult = result;
   res.json(filteredResult);
 });
 
