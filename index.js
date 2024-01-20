@@ -1,5 +1,6 @@
 console.log("Hello CodeSandbox");
 
+// yarn add express cheerio moment body-parser cors
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
@@ -50,10 +51,96 @@ app.get("/", async (req, res) => {
   const response = await fetch(
     `https://www.minhngoc.com.vn/ket-qua-xo-so/mien-nam/${date}.html`,
   );
+  const response2 = await fetch(
+    `https://www.minhngoc.com.vn/ket-qua-xo-so/mien-bac/${date}.html`,
+  );
   const html = await response.text();
+  const html2 = await response2.text();
 
   const $ = cheerio.load(html);
+  const $2 = cheerio.load(html2);
   const result = [];
+  const result2 = [];
+
+  $2("table.bkqtinhmienbac")
+    .first()
+    .find("tbody")
+    .each((row, elem) => {
+      // $(elem)
+      //   .find("td > *")
+      //   .each((idx2, elem) => {
+      //     const value = $(elem).text().trim();
+      //     console.log(row, idx2, value);
+      //   });
+
+      const rowData = {};
+      const prize7 = [];
+      const prize6 = [];
+      const prize5 = [];
+      const prize4 = [];
+      const prize3 = [];
+      const prize2 = [];
+
+      $(elem)
+        .find("tr")
+        .each((idx, elem) => {
+          // console.log(idx, elem);
+          //   if (row !== 1) {
+          //     return;
+          //   }
+          $(elem)
+            .find("td > div")
+            .each((idx2, elem) => {
+              const value = $(elem).text().trim();
+              // console.log(row, idx, idx2, value);
+              switch (idx) {
+                case 0:
+                  const nameValue = "Miền Bắc";
+                  rowData["name"] = nameValue;
+                  if (nameValue?.length) {
+                    rowData["code"] = String(toNonAccentVietnamese(nameValue))
+                      .split(" ")
+                      .map((text) => String(text).charAt(0))
+                      .join("");
+                  }
+                  break;
+                case 1:
+                  rowData["specialPrize"] = value;
+                  break;
+                case 2:
+                  rowData["1stPrize"] = value;
+                  break;
+                case 3:
+                  prize2.push(value);
+                  rowData["2ndPrize"] = prize2;
+                  break;
+                case 4:
+                  prize3.push(value);
+                  rowData["3rdPrize"] = prize3;
+                  break;
+                case 5:
+                  prize4.push(value);
+                  rowData["4thPrize"] = prize4;
+                  break;
+                case 6:
+                  prize5.push(value);
+                  rowData["5thPrizes"] = prize5;
+                  break;
+                case 7:
+                  prize6.push(value);
+                  rowData["6thPrize"] = prize6;
+                  break;
+                case 8:
+                  prize7.push(value);
+                  rowData["7thPrize"] = prize7;
+                  break;
+                default:
+                  break;
+              }
+            });
+        });
+      result2.push(rowData);
+    });
 
   $("table.bkqmiennam")
     .find("table")
@@ -61,6 +148,7 @@ app.get("/", async (req, res) => {
       $(elem)
         .find(".rightcl")
         .each((idx, elem) => {
+          // console.log(idx, elem);
           //   if (row !== 1) {
           //     return;
           //   }
@@ -129,11 +217,7 @@ app.get("/", async (req, res) => {
           result.push(rowData);
         });
     });
-  //   console.log(result);
-  // const filteredResult = result.filter((item) =>
-  //   ["Đồng Nai", "Cần Thơ", "Sóc Trăng"].includes(item.name),
-  // );
-  const filteredResult = result;
+  const filteredResult = [].concat(result).concat(result2);
   res.json(filteredResult);
 });
 
@@ -165,7 +249,7 @@ app.get("/sample", async (req, res) => {
         });
       result.push(rowData);
     });
-  console.log(result);
+  // console.log(result);
   res.json(result);
 });
 
