@@ -248,7 +248,7 @@ app.get("/sample", async (req, res) => {
         });
       result.push(rowData);
     });
-  console.log(result);
+  // console.log(result);
   res.json(result);
 });
 
