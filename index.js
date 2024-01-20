@@ -54,25 +54,109 @@ app.get("/", async (req, res) => {
   const response2 = await fetch(
     `https://www.minhngoc.com.vn/ket-qua-xo-so/mien-bac/${date}.html`,
   );
+  const response3 = await fetch(
+    `https://www.minhngoc.com.vn/ket-qua-xo-so/mien-trung/${date}.html`,
+  );
+
   const html = await response.text();
   const html2 = await response2.text();
+  const html3 = await response3.text();
 
   const $ = cheerio.load(html);
   const $2 = cheerio.load(html2);
+  const $3 = cheerio.load(html3);
   const result = [];
   const result2 = [];
+  const result3 = [];
+
+  $("table.bkqmiennam")
+    .first()
+    .find("table")
+    .each((row, elem) => {
+      $(elem)
+        .find(".rightcl")
+        .each((idx, elem) => {
+          // console.log(idx, elem);
+          //   if (row !== 1) {
+          //     return;
+          //   }
+          const rowData = {};
+          const prize6 = [];
+          const prize4 = [];
+          const prize3 = [];
+          $(elem)
+            .find("td > *")
+            .each((idx2, elem) => {
+              const value = $(elem).text().trim();
+              //   console.log(row, idx, idx2, value);
+              switch (idx2) {
+                case 0:
+                  rowData["name"] = value;
+                  if (value?.length) {
+                    rowData["code"] =
+                      value === "TP. HCM"
+                        ? "TP"
+                        : value === "Bình Thuận"
+                          ? "BThuan"
+                          : value === "Bến Tre"
+                            ? "BTre"
+                            : String(toNonAccentVietnamese(value))
+                                .split(" ")
+                                .map((text) => String(text).charAt(0))
+                                .join("");
+                  }
+                  break;
+                case 1:
+                  rowData["8thPrize"] = value;
+                  break;
+                case 2:
+                  rowData["7thPrize"] = value;
+                  break;
+                case 3:
+                case 4:
+                case 5:
+                  prize6.push(value);
+                  rowData["6thPrize"] = prize6;
+                  break;
+                case 6:
+                  rowData["5thPrizes"] = value;
+                  break;
+                case 7:
+                case 8:
+                case 9:
+                case 10:
+                case 11:
+                case 12:
+                case 13:
+                  prize4.push(value);
+                  rowData["4thPrize"] = prize4;
+                  break;
+                case 14:
+                case 15:
+                  prize3.push(value);
+                  rowData["3rdPrize"] = prize3;
+                  break;
+                case 16:
+                  rowData["2ndPrize"] = value;
+                  break;
+                case 17:
+                  rowData["1stPrize"] = value;
+                  break;
+                case 18:
+                  rowData["specialPrize"] = value;
+                  break;
+                default:
+                  break;
+              }
+            });
+          result.push(rowData);
+        });
+    });
 
   $2("table.bkqtinhmienbac")
     .first()
     .find("tbody")
     .each((row, elem) => {
-      // $(elem)
-      //   .find("td > *")
-      //   .each((idx2, elem) => {
-      //     const value = $(elem).text().trim();
-      //     console.log(row, idx2, value);
-      //   });
-
       const rowData = {};
       const prize7 = [];
       const prize6 = [];
@@ -142,9 +226,18 @@ app.get("/", async (req, res) => {
       result2.push(rowData);
     });
 
-  $("table.bkqmiennam")
+  $3("table.bkqmiennam")
+    .first()
     .find("table")
     .each((row, elem) => {
+      const rowData = {};
+      const prize7 = [];
+      const prize6 = [];
+      const prize5 = [];
+      const prize4 = [];
+      const prize3 = [];
+      const prize2 = [];
+
       $(elem)
         .find(".rightcl")
         .each((idx, elem) => {
@@ -165,10 +258,15 @@ app.get("/", async (req, res) => {
                 case 0:
                   rowData["name"] = value;
                   if (value?.length) {
-                    rowData["code"] = String(toNonAccentVietnamese(value))
-                      .split(" ")
-                      .map((text) => String(text).charAt(0))
-                      .join("");
+                    rowData["code"] =
+                      value === "Đà Nẵng"
+                        ? "DNANG"
+                        : value === "Đắk Nông"
+                          ? "DNONG"
+                          : String(toNonAccentVietnamese(value))
+                              .split(" ")
+                              .map((text) => String(text).charAt(0))
+                              .join("");
                   }
                   break;
                 case 1:
@@ -214,10 +312,12 @@ app.get("/", async (req, res) => {
                   break;
               }
             });
-          result.push(rowData);
+          result3.push(rowData);
         });
     });
-  const filteredResult = [].concat(result).concat(result2);
+
+  // const filteredResult = [].concat(result).concat(result2).concat(result3);
+  const filteredResult = [].concat(result);
   res.json(filteredResult);
 });
 
@@ -245,7 +345,7 @@ app.get("/sample", async (req, res) => {
             default:
               break;
           }
-          console.log(row, idx, value);
+          // console.log(row, idx, value);
         });
       result.push(rowData);
     });
